@@ -28,6 +28,7 @@ var count = 0;
 
 var segments = [];
 var sweepLineStatus = [];
+var emptyBlocks = [];
 
 function windowResized() {
 	centerCanvas();
@@ -50,6 +51,7 @@ function resetRectangles(argument) {
 	rectangles = [];
 	segments   = [];
 	sweepLineStatus = [];
+	emptyBlocks = [];
 	console.clear();
 	background(0, 255, 0);
 	loop();
@@ -101,7 +103,7 @@ function draw() {
 	// removeDuplicates();
 	console.log("Removing Duplicates:", segments);
 	getdots();
-	console.log("Done");
+	console.log("Done", emptyBlocks);
 	noLoop();
 }
 
@@ -270,11 +272,13 @@ function getdots(){
 	var temp = [];
 	var left, right;
 	var isopen;
+	var openlines = [];
+	openlines.push({x1:0, y1:0, x2:WIDTH, y2:0});
 
 	fill(0,0,255);
-	
+
 	for (var i = 0; i< segments.length; i++) {
-		console.log(temp);
+		// console.log(temp);
 		index  = flooring(segments[i].x1);
 		isopen = segments[i].open;
 		if(isopen){
@@ -289,8 +293,6 @@ function getdots(){
 					points.push({x: WIDTH, y:segments[i].y1});
 				else
 					points.push({x: sweepLineStatus[1].rect.x1, y:segments[i].y1});
-
-				// linedash(0, segments[i].y1, WIDTH, segments[i].y1);
 			}
 			else{
 				sweepLineStatus.splice(index+1, 0, segments[i]);
@@ -304,9 +306,9 @@ function getdots(){
 				else
 					points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1});
 			}
-
-			console.log(isopen, index, points[points.length-2], points[points.length-1], temp);
-
+			checkPossibleEmptyBlocks1(openlines, points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y);			
+			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:segments[i].x1,            y2:segments[i].y1});
+			openlines.push({x1:segments[i].x2,            y1:segments[i].y2,            x2:points[points.length-1].x, y2:points[points.length-1].y});
 		}else{
 			left  = index-1;
 			if(left == -1)
@@ -321,17 +323,40 @@ function getdots(){
 				points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1});
 			
 			sweepLineStatus.splice(index, 1);
-			temp.splice(index, 0);
-			console.log(isopen, index, points[points.length-2], points[points.length-1], temp);
+			temp.splice(index, 1);
+
+			if((segments[i].x1 - points[points.length-2].x) >0)
+				checkPossibleEmptyBlocks2(openlines, points[points.length-2].x, points[points.length-2].y, segments[i].x1, segments[i].y1);
+			if((points[points.length-1].x - segments[i].x2) >0)
+				checkPossibleEmptyBlocks2(openlines, segments[i].x2, segments[i].y2, points[points.length-1].x, points[points.length-1].y);			
+			
+			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:points[points.length-1].x, y2:points[points.length-1].y});
 		}
+		console.log("After ", i, emptyBlocks.length, emptyBlocks, openlines);
 
 		linedash(points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y);
-		console.log("h");
-		circle(points[points.length-1].x, points[points.length-1].y, 1); 
-		circle(points[points.length-2].x, points[points.length-2].y, 1); 
+		// console.log(isopen, index, points[points.length-2], points[points.length-1], temp);
+		circle(points[points.length-1].x, points[points.length-1].y, 8); 
+		circle(points[points.length-2].x, points[points.length-2].y, 8); 
 	}
 
+	// emptyBlocks();
+	var x1, y1, x2, y2;
+	x1 = openlines[openlines.length-1].x1;
+	y1 = openlines[openlines.length-1].y1;
+	x2 = openlines[openlines.length-1].x2;
+	y2 = openlines[openlines.length-1].y2;
+
+	emptyBlocks.push({x1: x1, y1: y1, w:WIDTH , h:(HEIGHT-y2)});
+
 	console.log(points);
+	
+	fill(255,0,255);
+	for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+		console.log("asdf");
+		rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
+	}
+
 	fill(0,0,255);
 	for (var i = points.length - 1; i >= 0; i--) {
 		circle(points[i].x, points[i].y, 8); 
@@ -356,5 +381,47 @@ function linedash(x1, y1, x2, y2, delta=2, style = '-') {
 		if (style == '-') { line(xi1, yi1, xi2, yi2); }
 		else if (style == '.') { point(xi1, yi1); }
 		else if (style == 'o') { ellipse(xi1, yi1, delta/2); }
+	}
+}
+
+
+function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2){
+	var x1, y1, x2, y2, flag=0;
+	for (var i = 0; i < openlines.length; i++) {
+		x1 = openlines[i].x1;
+		y1 = openlines[i].y1;
+		x2 = openlines[i].x2;
+		y2 = openlines[i].y2;
+
+		if(x1==px1 && x2==px2){
+			flag +=1; 
+			emptyBlocks.push({x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2)});
+			console.log("block found", emptyBlocks.length, emptyBlocks);
+			openlines.splice(i, 1);
+		}
+		if(flag>1){
+			console.log("Error", emptyBlocks);
+		}
+	}
+}
+
+function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2){
+	var x1, y1, x2, y2, flag=0;
+	for (var i = 0; i < openlines.length; i++) {
+		x1 = openlines[i].x1;
+		y1 = openlines[i].y1;
+		x2 = openlines[i].x2;
+		y2 = openlines[i].y2;
+
+		if(x1==px1 && x2==px2){
+			flag +=1; 
+			emptyBlocks.push({x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2)});
+			openlines.splice(i, 1);
+			console.log("block found", emptyBlocks.length);
+			return;
+		}
+		if(flag>1){
+			console.log("Error", emptyBlocks);
+		}
 	}
 }
