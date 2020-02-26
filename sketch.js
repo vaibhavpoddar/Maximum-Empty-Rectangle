@@ -1,6 +1,6 @@
 var WIDTH     = 600; 	// Width of canvas
 var HEIGHT    = 600; 	// Height of canvas
-var totalRect = 20; 	// Total number of rectangles wanted 
+var totalRect = 40; 	// Total number of rectangles wanted 
 var epsilon   = 5;		// minimum distance between any 2 rectangle
 var margin    = 20;		// outer Boundary Margin
 var minW      = 20; 	// minimum rectangle Width
@@ -15,21 +15,76 @@ var xmax  = WIDTH  - margin; 		// max rect.x1
 var ymin  = margin;             	// min rect.y1
 var ymax  = HEIGHT - margin;      	// max rect.y1
 var rectangles = [];
+var cnv;
+var txt;
+var newbtn;
+var corbtn;
+var hr;
+var inputN;
+var inputText;
+var count = 0;
 
-function setup() {
-	createCanvas(WIDTH, HEIGHT);
-	background(0, 255 ,0);
+function windowResized() {
+	centerCanvas();
 }
 
+function centerCanvas() {
+	var x = (windowWidth - width) / 2;
+	var y = (windowHeight - height) / 2;
+	cnv.position(x, y);
+	txt.position(cnv.x+100, cnv.y-60);
+	hr.position(cnv.x, cnv.y+HEIGHT);
+	newbtn.position(cnv.x + 10, cnv.y+HEIGHT+10);
+	corbtn.position(cnv.x + 10, cnv.y+HEIGHT+40);
+	inputText.position(cnv.x + 10, cnv.y+HEIGHT+70);
+	inputN.position(cnv.x + 250,    cnv.y+HEIGHT+70);
+}
+
+function resetRectangles(argument) {
+	count = 0;
+	rectangles = [];
+	background(0, 255, 0);
+	loop();
+}
+
+function setup() {
+	txt       = createDiv('<H2>Location of maximal empty rectangle!</H2>');
+  	cnv       = createCanvas(WIDTH, HEIGHT);
+	hr        = createP("<br>");
+ 	newbtn    = createButton('Reload Rectangles');
+ 	corbtn    = createButton('Run Corner Stitching');
+	inputN    = createInput(totalRect);
+	inputText = createDiv("<b>Number of Rectangles (1 to 40): </b>");
+	
+	newbtn.mousePressed(resetRectangles);
+	corbtn.mousePressed(runCornerStitching);
+	inputN.input(myInputEvent);
+
+  	cnv.background(0, 255, 0);
+	centerCanvas();   
+}
+
+function myInputEvent() {
+	let temp = this.value();
+	if(temp>40 || temp<1){
+		window.alert("Please enter the number between 1 and 40. (inclusive)");
+		return;
+	}
+
+	totalRect = temp;
+	console.log('total Rectangles modified to', totalRect);
+}
+
+
 function draw() {
-	var count = 0;
+	console.log("Redrawing");
 	while(count<totalRect){
 		getRandomRectangle(epsilon);
 		count+=1;
 	}
-	for (var i = rectangles.length - 1; i >= 0; i--) {
-		console.log(rectangles[i]);
-	}
+	// for (var i = rectangles.length - 1; i >= 0; i--) {
+	// 	console.log(rectangles[i]);
+	// }
 	noLoop();
 }
 
@@ -48,12 +103,13 @@ class myRectangle{
 		this.y = y;
 		this.w = w;
 		this.h = h;
-	
 	}
+
 	print(){
 		fill(255, 0, 0);
 		rect(this.x, this.y, this.w, this.h);
 	}
+	
 	insersect(R, eps){
 		var x1 = this.x1 - eps;
 		var y1 = this.y1 - eps;
@@ -96,5 +152,8 @@ function getRandomRectangle(eps) {
 			break;
 		}
 	}
+}
+
+function runCornerStitching(){
 
 }
