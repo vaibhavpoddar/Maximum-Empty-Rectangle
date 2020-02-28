@@ -99,9 +99,11 @@ function btn_getIntersections(){
 }
 function btn_runCornerStitching(){
 	if(!part2){
-		fill(255,204,0);
 		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+			fill(255,204,0);
 			rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
+			fill(0);
+			text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
 		}
 
 		fill(0,0,255);
@@ -119,11 +121,13 @@ function btn_runCornerStitching(){
 			}
 		}
 
-		fill(155, 200, 25);
 		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
 			temp2 = (emptyBlocks[i].w * emptyBlocks[i].h);
 			if(answer == temp2){	
+				fill(155, 200, 25);
 				rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2);
+				fill(0);
+				text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
 			}
 		}
 		printResult(answer);
@@ -183,65 +187,6 @@ function myInputEvent() {
 	console.log(inputN.value(), minWN.value(), maxWN.value(), minHN.value(), maxHN.value());
 	
 }
-
-
-function draw() {
-	while(count<totalRect){
-		getRandomRectangle(epsilon);
-		count+=1;
-	}
-
-	if(!done){
-		getAllSegements();
-		sortSegments();
-		getdots();		
-		console.log("Done", emptyBlocks);
-		done = true;		
-	}
-
-	noLoop();
-}
-
-class myRectangle{
-	constructor(x, y, w, h){
-		this.rank = -1;
-		this.x1 = x;
-		this.y1 = y;
-		this.x2 = x + w;
-		this.y2 = y;
-		this.x3 = x + w;
-		this.y3 = y + h;
-		this.x4 = x;
-		this.y4 = y + h;
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
-	}
-
-	print(){
-		fill(255, 0, 0);
-		rect(this.x, this.y, this.w, this.h);
-	}
-	
-	insersect(R, eps){
-		var x1 = this.x1 - eps;
-		var y1 = this.y1 - eps;
-		var x3 = this.x3 + eps;
-		var y3 = this.y3 + eps;
-		var a1 = R.x - eps;
-		var b1 = R.y - eps;
-		var a3 = R.x + R.w + eps;
-		var b3 = R.y + R.h + eps;
-		// Rectangles on left or right
-	    if (x1 > a3 || a1 > x3) return false; 		  
-
-	    // Rectangles on top or bottom 
-	    if (y3 < b1 || b3 < y1) return false; 
-	    return true; 
-	}
-}
-
 function getRandomRectangle(eps) {
 	while(1){
 		var x = Math.floor(xmin+ Math.random()*xmax);
@@ -267,8 +212,6 @@ function getRandomRectangle(eps) {
 		}
 	}
 }
-
-
 function showHorLine(){
 	console.log(rectangles);
 	rectangles.sort(function(r1, r2){
@@ -277,19 +220,6 @@ function showHorLine(){
 	});
 	console.log(rectangles);
 }
-
-
-class Segment{
-	constructor(x1, y1, x2, y2, R, opening){
-		this.x1 = x1;
-		this.y1 = y1;
-		this.x2 = x2;
-		this.y2 = y2;
-		this.rect = R;
-		this.open = opening;
-	}
-}
-
 function getAllSegements() {
 	var x1, y1, x2, y2, S;
 	for (var i = rectangles.length - 1; i >= 0; i--) {
@@ -308,7 +238,18 @@ function getAllSegements() {
 		segments.push(S);
 	}
 }
-
+function sortRectangles(){
+	rectangles.sort(function(r1, r2){
+		if(r1.y1 < r2.y1) return -1;
+		if(r1.y1 > r2.y1) return 1;
+		return 0;
+	});
+	for (var i = 0; i < rectangles.length; i++) {
+		rectangles[i].rank = i+1;
+		fill(0);
+		text(i+1, rectangles[i].x1 + 5, rectangles[i].y1 + 15);
+	}
+}
 function sortSegments() {
 	// console.log("Before sorting:", segments);
 	segments.sort(function(s1, s2){
@@ -339,7 +280,119 @@ function removeDuplicates(argument) {
 	segments = result;
 	result = [];
 }
+function linedash(x1, y1, x2, y2, delta=2, style = '-') {
+	// delta is both the length of a dash, the distance between 2 dots/dashes, and the diameter of a round
+	let distance = dist(x1,y1,x2,y2);
+	let dashNumber = distance/delta;
+	let xDelta = (x2-x1)/dashNumber;
+	let yDelta = (y2-y1)/dashNumber;
 
+	for (let i = 0; i < dashNumber; i+= 2) {
+		let xi1 = i*xDelta + x1;
+		let yi1 = i*yDelta + y1;
+		let xi2 = (i+1)*xDelta + x1;
+		let yi2 = (i+1)*yDelta + y1;
+
+		if (style == '-') { line(xi1, yi1, xi2, yi2); }
+		else if (style == '.') { point(xi1, yi1); }
+		else if (style == 'o') { ellipse(xi1, yi1, delta/2); }
+	}
+}
+function printResult(ans){
+	var str="<h3>List of all Empty Blocks:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
+	var final="";
+	var temp;
+	console.log("ans:",ans);
+	for (var i = 0; i < emptyBlocks.length; i++) {
+		temp = (emptyBlocks[i].w*emptyBlocks[i].h);
+		if(temp == ans)
+			final+=("B "+emptyBlocks[i].rank+ ") Width = "+ emptyBlocks[i].w+ " Height = " + emptyBlocks[i].h + "&nbsp;&nbsp; Area:"+(emptyBlocks[i].w*emptyBlocks[i].h) + "<br>");
+	
+		str+=(  "<tr><td>"+emptyBlocks[i].rank+"</td><td>"+ emptyBlocks[i].w + "</td><td>" + emptyBlocks[i].h + "</td><td>" + (emptyBlocks[i].w*emptyBlocks[i].h) + "</td></tr>");
+	}
+	str+="</table>";
+
+    allBlocks.html(str);
+	resultText.html("<h2>Results:</h2><br>" + final);
+	// console.log("here", final);
+}
+function draw() {
+	while(count<totalRect){
+		getRandomRectangle(epsilon);
+		count+=1;
+		if(count==totalRect)
+			sortRectangles();
+	}
+
+	if(!done){
+		getAllSegements();
+		sortSegments();
+		getdots();		
+		console.log("Done", emptyBlocks);
+		done = true;		
+	}
+
+	noLoop();
+}
+
+class myRectangle{
+	constructor(x, y, w, h){
+		this.rank = -1;
+		this.x1 = x;
+		this.y1 = y;
+		this.x2 = x + w;
+		this.y2 = y;
+		this.x3 = x + w;
+		this.y3 = y + h;
+		this.x4 = x;
+		this.y4 = y + h;
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.up    = [];
+		this.down  = [];
+		this.left  = [];
+		this.right = [];
+	}
+
+	print(){
+		fill(255, 0, 0);
+		rect(this.x, this.y, this.w, this.h);
+	}
+	
+	insersect(R, eps){
+		var x1 = this.x1 - eps;
+		var y1 = this.y1 - eps;
+		var x3 = this.x3 + eps;
+		var y3 = this.y3 + eps;
+		var a1 = R.x - eps;
+		var b1 = R.y - eps;
+		var a3 = R.x + R.w + eps;
+		var b3 = R.y + R.h + eps;
+		// Rectangles on left or right
+	    if (x1 > a3 || a1 > x3) return false; 		  
+
+	    // Rectangles on top or bottom 
+	    if (y3 < b1 || b3 < y1) return false; 
+	    return true; 
+	}
+}
+
+class Segment{
+	constructor(x1, y1, x2, y2, R, opening){
+		this.x1 = x1;
+		this.y1 = y1;
+		this.x2 = x2;
+		this.y2 = y2;
+		this.rect = R;
+		this.open = opening;
+		this.up    = [];
+		this.down  = [];
+		this.left  = [];
+		this.right = [];
+	}
+}
 
 function flooring(x) { // now in O(N) later have to do in O(logN)
 	var ans = -1;
@@ -356,66 +409,76 @@ function flooring(x) { // now in O(N) later have to do in O(logN)
 	return ans;
 }
 
-
 function getdots(){
 	var index;
 	var temp = [];
 	var left, right;
 	var isopen;
 	var openlines = [];
+	var closeLeft_left;
+	var closeLeft_right;
+	var closeRight_left;
+	var closeRight_right;
+	var R1, R2;
 	openlines.push({x1:0, y1:0, x2:WIDTH, y2:0});
 
 	for (var i = 0; i< segments.length; i++) {
 		index  = flooring(segments[i].x1);
 		isopen = segments[i].open;
-		if(isopen){
+		if(isopen){						// rectangle opening 
 			if(index == -1){
-				// no left exist
+														// no left exist
 				sweepLineStatus.splice(0, 0, segments[i]);
 				temp.splice(0, 0, segments[i].x1);
 				points.push({x: 0,     y:segments[i].y1});
-				
+				R1 = null;
+
 				right = 1;
-				if(right == sweepLineStatus.length)
-					points.push({x: WIDTH, y:segments[i].y1});
-				else
-					points.push({x: sweepLineStatus[1].rect.x1, y:segments[i].y1});
+				if(right == sweepLineStatus.length)		// no right exist
+					{points.push({x: WIDTH, y:segments[i].y1}); R2 = null;}
+				else 									// right exist
+					{points.push({x: sweepLineStatus[1].rect.x1, y:segments[i].y1}); R2 = sweepLineStatus[1].rect;}
 			}
 			else{
 				sweepLineStatus.splice(index+1, 0, segments[i]);
 				temp.splice(index+1, 0, segments[i].x1);
 				left  = index; 
 				points.push({x:sweepLineStatus[left].rect.x2, y:segments[i].y1});
+				R1 = sweepLineStatus[left].rect;
 
 				right = index + 2;
 				if(right == sweepLineStatus.length)
-					points.push({x:WIDTH, y:segments[i].y1});
+					{points.push({x:WIDTH, y:segments[i].y1}); R2 = null;}
 				else
-					points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1});
+					{points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1}); R2 = sweepLineStatus[right].rect;}
 			}
-			checkPossibleEmptyBlocks1(openlines, points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y);			
+
+			checkPossibleEmptyBlocks1(openlines, points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y, R1, R2);			
 			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:segments[i].x1,            y2:segments[i].y1});
 			openlines.push({x1:segments[i].x2,            y1:segments[i].y2,            x2:points[points.length-1].x, y2:points[points.length-1].y});
-		}else{
+		}else{						// rectangle closing
 			left  = index-1;
 			if(left == -1)
-				points.push({x:0, y:segments[i].y1});
+				{points.push({x:0, y:segments[i].y1});  closeLeft_left= null;}
 			else
-				points.push({x:sweepLineStatus[left].rect.x2, y:segments[i].y1});
+				{points.push({x:sweepLineStatus[left].rect.x2, y:segments[i].y1}); closeLeft_left = sweepLineStatus[left].rect;}
 			
+
 			right = index+1; 
 			if(right == sweepLineStatus.length)
-				points.push({x:WIDTH, y:segments[i].y1});
+				{points.push({x:WIDTH, y:segments[i].y1}); closeRight_right = null;}
 			else
-				points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1});
+				{points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1}); closeRight_right = sweepLineStatus[right].rect;}
 			
 			sweepLineStatus.splice(index, 1);
 			temp.splice(index, 1);
 
+			closeLeft_right = segments[i].rect;
+			closeRight_left = segments[i].rect;
 			if((segments[i].x1 - points[points.length-2].x) >0)
-				checkPossibleEmptyBlocks2(openlines, points[points.length-2].x, points[points.length-2].y, segments[i].x1, segments[i].y1);
+				checkPossibleEmptyBlocks2(openlines, points[points.length-2].x, points[points.length-2].y, segments[i].x1, segments[i].y1, closeLeft_left, closeLeft_right);
 			if((points[points.length-1].x - segments[i].x2) >0)
-				checkPossibleEmptyBlocks2(openlines, segments[i].x2, segments[i].y2, points[points.length-1].x, points[points.length-1].y);			
+				checkPossibleEmptyBlocks2(openlines, segments[i].x2, segments[i].y2, points[points.length-1].x, points[points.length-1].y, closeRight_left, closeRight_right);			
 			
 			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:points[points.length-1].x, y2:points[points.length-1].y});
 		}
@@ -435,33 +498,16 @@ function getdots(){
 	x2 = openlines[openlines.length-1].x2;
 	y2 = openlines[openlines.length-1].y2;
 
-	emptyBlocks.push({x1: x1, y1: y1, w:WIDTH , h:(HEIGHT-y2), rank:(emptyBlocks.length+1)});
+	emptyBlocks.push({up:null, down:null, left:null, right:null, x1: x1, y1: y1, w:WIDTH , h:(HEIGHT-y2), rank:(emptyBlocks.length+1)});
 
 	// console.log(points);
 }
 
-function linedash(x1, y1, x2, y2, delta=2, style = '-') {
-	// delta is both the length of a dash, the distance between 2 dots/dashes, and the diameter of a round
-	let distance = dist(x1,y1,x2,y2);
-	let dashNumber = distance/delta;
-	let xDelta = (x2-x1)/dashNumber;
-	let yDelta = (y2-y1)/dashNumber;
-
-	for (let i = 0; i < dashNumber; i+= 2) {
-		let xi1 = i*xDelta + x1;
-		let yi1 = i*yDelta + y1;
-		let xi2 = (i+1)*xDelta + x1;
-		let yi2 = (i+1)*yDelta + y1;
-
-		if (style == '-') { line(xi1, yi1, xi2, yi2); }
-		else if (style == '.') { point(xi1, yi1); }
-		else if (style == 'o') { ellipse(xi1, yi1, delta/2); }
-	}
-}
 
 
-function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2){
-	var x1, y1, x2, y2, flag=0;
+
+function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2, R1, R2){
+	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT;
 	for (var i = 0; i < openlines.length; i++) {
 		x1 = openlines[i].x1;
 		y1 = openlines[i].y1;
@@ -469,9 +515,14 @@ function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2){
 		y2 = openlines[i].y2;
 
 		if(x1==px1 && x2==px2){
-			flag +=1; 
+			flag +=1;
 			if((x2-x1)*(py2-y2) !=0)
-				emptyBlocks.push({x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});
+			{	UP    = null;
+				DOWN  = null;
+				LEFT  = (R1==null)?null:R1.rank;
+				RIGHT = (R2==null)?null:R2.rank;
+				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});				
+			}
 			// console.log("block found", emptyBlocks.length, emptyBlocks);
 			openlines.splice(i, 1);
 		}
@@ -481,8 +532,8 @@ function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2){
 	}
 }
 
-function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2){
-	var x1, y1, x2, y2, flag=0;
+function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2, R1, R2){
+	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT;
 	for (var i = 0; i < openlines.length; i++) {
 		x1 = openlines[i].x1;
 		y1 = openlines[i].y1;
@@ -492,7 +543,12 @@ function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2){
 		if(x1==px1 && x2==px2){
 			flag +=1; 
 			if((x2-x1)*(py2-y2) !=0)
-				emptyBlocks.push({x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});
+			{	UP    = null;
+				DOWN  = null;
+				LEFT  = (R1==null)?null:R1.rank;
+				RIGHT = (R2==null)?null:R2.rank;
+				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});
+			}
 			openlines.splice(i, 1);
 			// console.log("block found", emptyBlocks.length);
 			return;
@@ -504,21 +560,3 @@ function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2){
 }
 
 
-function printResult(ans){
-	var str="<h3>List of all Empty Blocks:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
-	var final="";
-	var temp;
-	console.log("ans:",ans);
-	for (var i = 0; i < emptyBlocks.length; i++) {
-		temp = (emptyBlocks[i].w*emptyBlocks[i].h);
-		if(temp == ans)
-			final+=("B "+emptyBlocks[i].rank+ ") Width = "+ emptyBlocks[i].w+ " Height = " + emptyBlocks[i].h + "&nbsp;&nbsp; Area:"+(emptyBlocks[i].w*emptyBlocks[i].h) + "<br>");
-	
-		str+=(  "<tr><td>"+emptyBlocks[i].rank+"</td><td>"+ emptyBlocks[i].w + "</td><td>" + emptyBlocks[i].h + "</td><td>" + (emptyBlocks[i].w*emptyBlocks[i].h) + "</td></tr>");
-	}
-	str+="</table>";
-
-    allBlocks.html(str);
-	resultText.html("<h2>Results:</h2><br>" + final);
-	// console.log("here", final);
-}
