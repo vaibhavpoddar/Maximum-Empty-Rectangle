@@ -1,6 +1,6 @@
 var WIDTH     = 600; 	// Width of canvas
 var HEIGHT    = 600; 	// Height of canvas
-var totalRect = 40; 	// Total number of rectangles wanted 
+var totalRect = 10; 	// Total number of rectangles wanted 
 var epsilon   = 5;		// minimum distance between any 2 rectangle
 var margin    = 5;		// outer Boundary Margin
 var minW      = 20; 	// minimum rectangle Width
@@ -516,7 +516,7 @@ function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2, R1, R2){
 
 		if(x1==px1 && x2==px2){
 			flag +=1;
-			if((x2-x1)*(py2-y2) !=0)
+			// if((x2-x1)*(py2-y2) !=0)
 			{	UP    = null;
 				DOWN  = null;
 				LEFT  = (R1==null)?null:R1.rank;
@@ -542,7 +542,7 @@ function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2, R1, R2){
 
 		if(x1==px1 && x2==px2){
 			flag +=1; 
-			if((x2-x1)*(py2-y2) !=0)
+			// if((x2-x1)*(py2-y2) !=0)
 			{	UP    = null;
 				DOWN  = null;
 				LEFT  = (R1==null)?null:R1.rank;
