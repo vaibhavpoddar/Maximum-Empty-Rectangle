@@ -148,20 +148,20 @@ function btn_runCornerStitching(){
 	loop();
 }
 function btn_getResult(){
-	if(part2){
-		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
-			fill(255,204,0);
-			rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
-			fill(0);
-			if(showText)
-				text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
-		}
+	if(1){
+		// for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+		// 	fill(255,204,0);
+		// 	rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
+		// 	fill(0);
+		// 	if(showText)
+		// 		text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+		// }
 
-		fill(0,0,255);
-		for (var i = points.length - 1; i >= 0; i--) {
-			circle(points[i].x, points[i].y, circleRadius); 
-		}		
-		part2 = true;
+		// fill(0,0,255);
+		// for (var i = points.length - 1; i >= 0; i--) {
+		// 	circle(points[i].x, points[i].y, circleRadius); 
+		// }		
+		// part2 = true;
 
 		var answer = 0;
 		let temp, temp2; 
@@ -172,16 +172,16 @@ function btn_getResult(){
 			}
 		}
 
-		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
-			temp2 = (emptyBlocks[i].w * emptyBlocks[i].h);
-			if(answer == temp2){	
-				fill(155, 200, 25);
-				rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2);
-				fill(0);
-				if(showText)
-					text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
-			}
-		}
+		// for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+		// 	temp2 = (emptyBlocks[i].w * emptyBlocks[i].h);
+		// 	if(answer == temp2){	
+		// 		fill(155, 200, 25);
+		// 		rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2);
+		// 		fill(0);
+		// 		if(showText)
+		// 			text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+		// 	}
+		// }
 
 		console.log("Result:", ans_Coordinates);
 		fill(0, 0, 200, 150); 
@@ -248,21 +248,20 @@ function myInputEvent() {
 		window.alert("Please enter the number between " +MinLimit+" and "+MaxLimit+". (inclusive)");
 		return;
 	}
-	minW = minWN.value();
-	maxW = maxWN.value();
-	minH = minHN.value();
-	maxH = maxHN.value();
-	totalRect = inputN.value();
-	console.log('total Rectangles modified to', totalRect);
-	console.log(inputN.value(), minWN.value(), maxWN.value(), minHN.value(), maxHN.value());
+	minW = (int)(minWN.value());
+	maxW = (int)(maxWN.value());
+	minH = (int)(minHN.value());
+	maxH = (int)(maxHN.value());
+	totalRect = (int)(inputN.value());
+	console.log("New values:", totalRect, inputN.value(), minWN.value(), maxWN.value(), minHN.value(), maxHN.value());
 	
 }
 function getRandomRectangle(eps) {
 	while(1){
-		var x = Math.floor(xmin+ Math.random()*xmax);
-		var y = Math.floor(ymin+ Math.random()*ymax);
-		var h = Math.floor(20+ Math.random()*80);
-		var w = Math.floor(20+ Math.random()*80);
+		var x = Math.floor(xmin+ Math.random()*(xmax));
+		var y = Math.floor(ymin+ Math.random()*(ymax));
+		var h = Math.floor(minH+ Math.random()*(maxH-minH));
+		var w = Math.floor(minW+ Math.random()*(maxW-minW));
 		if((x+w)>xmax || (y+h)>ymax) continue;
 			
 		R = new myRectangle(x,y,w,h);
@@ -283,7 +282,7 @@ function getRandomRectangle(eps) {
 	}
 }
 function showHorLine(){
-	console.log(rectangles);
+	// console.log(rectangles);
 	rectangles.sort(function(r1, r2){
 		if(r1.x1 < r2.x1) return -1;
 		return 0;
@@ -373,7 +372,7 @@ function printResult(ans, ActualMax=null){
 	var str="<h3>List of all Empty Blocks:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
 	var final="<h3>(Temp) Maximum Empty Rectangle:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
 	var temp;
-	console.log("ans:",ans);
+	// console.log("ans:",ans);
 	for (var i = 0; i < emptyBlocks.length; i++) {
 		temp = (emptyBlocks[i].w*emptyBlocks[i].h);
 		if(temp == ans)
@@ -426,7 +425,7 @@ function draw() {
 		getAllSegements();
 		sortSegments();
 		getdots();		
-		console.log("Done", emptyBlocks);
+		console.log("EmptyBlocks:", emptyBlocks);
 		done = true;		
 		getResult();
 	}
@@ -555,10 +554,10 @@ function getdots(){
 			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:segments[i].x1,            y2:segments[i].y1,            up:[t1]});
 			openlines.push({x1:segments[i].x2,            y1:segments[i].y2,            x2:points[points.length-1].x, y2:points[points.length-1].y, up:[t1]});
 			
-			console.log("Inside:");
-			console.log(points[points.length-2].x, segments[i].x1);
-			console.log(segments[i].x2, points[points.length-1].x);
-			console.log("above added!");
+			// console.log("Inside:");
+			// console.log(points[points.length-2].x, segments[i].x1);
+			// console.log(segments[i].x2, points[points.length-1].x);
+			// console.log("above added!");
 		}else{						// rectangle closing
 			left  = index-1;
 			if(left == -1)
@@ -591,7 +590,7 @@ function getdots(){
 			if(t1 !=-1) pointer.push(t1);
 			if(t2 !=-1) pointer.push(t2);
 			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:points[points.length-1].x, y2:points[points.length-1].y, up:pointer});
-			console.log(points[points.length-2].x, points[points.length-1].x);
+			// console.log(points[points.length-2].x, points[points.length-1].x);
 		}
 		// console.log("After ", i, emptyBlocks.length, emptyBlocks, openlines);
 
@@ -600,7 +599,7 @@ function getdots(){
 		// console.log(isopen, index, points[points.length-2], points[points.length-1], temp);
 		// circle(points[points.length-1].x, points[points.length-1].y, 8); 
 		// circle(points[points.length-2].x, points[points.length-2].y, 8); 
-		console.log("so now:", emptyBlocks);
+		// console.log("so now:", emptyBlocks);
 	}
 
 	// console.log("here", linesegments);
@@ -632,7 +631,7 @@ function checkPossibleEmptyBlocks1(px1, py1, px2, py2, R1, R2){
 		x2 = openlines[i].x2;
 		y2 = openlines[i].y2;
 
-		console.log(openlines);
+		// console.log(openlines);
 		if(x1==px1 && x2==px2){
 			flag +=1;
 			// if((x2-x1)*(py2-y2) !=0)
