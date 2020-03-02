@@ -55,7 +55,7 @@ function centerCanvas() {
 	var x = (windowWidth - width) / 2;
 	var y = ((windowHeight - height) / 2) - 30;
 	cnv.position(x, y);
-	txt.position(cnv.x+100, cnv.y-60);
+	txt.position(cnv.x+30, cnv.y-60);
 	hr.position(cnv.x, cnv.y+HEIGHT);
 	
 	newbtn.position(20, 70);
@@ -201,7 +201,7 @@ function myCheckBoxEvent(){
 	}
 }
 function setup() {
-	txt       = createDiv('<H2>Corner Stitching Sweep traversal!</H2>');
+	txt       = createDiv('<H2>Maximum Empty Rectangle in VLSI Layout Design!</H2>');
 	// txt       = createDiv('<H2>Location of maximal empty rectangle!</H2>');
 
   	cnv       = createCanvas(WIDTH, HEIGHT);
