@@ -22,11 +22,14 @@ var txt;
 var newbtn;
 var intbtn;
 var corbtn;
+var resbtn;
 var hr;
 var inputN, minHN, minWN, maxWN, maxHN;
 var inputText;
 var allBlocks;
 var resultText;
+var textCB;
+var showText = false;
 var count = 0;
 var circleRadius = 8;
 var part1 = false;
@@ -41,6 +44,8 @@ var sweepLineStatus = [];
 var emptyBlocks = [];
 var linesegments = [];
 var points = [];
+var openlines = [];
+var ans_Coordinates = [];
 
 function windowResized() {
 	centerCanvas();
@@ -52,9 +57,13 @@ function centerCanvas() {
 	cnv.position(x, y);
 	txt.position(cnv.x+100, cnv.y-60);
 	hr.position(cnv.x, cnv.y+HEIGHT);
-	newbtn.position(20, 100);
-	intbtn.position(20, 130);
-	corbtn.position(20, 160);
+	
+	newbtn.position(20, 70);
+	intbtn.position(20, 100);
+	corbtn.position(20, 130);
+	resbtn.position(20, 160);
+	textCB.position(5, 30);
+
 	inputText.position(20,  190);
 	inputN.position(20+230, 190);
 	minWN.position(20+230, 190+37);
@@ -63,7 +72,7 @@ function centerCanvas() {
 	maxHN.position(20+230, 190+145);
 
     allBlocks.position(cnv.x+WIDTH + 50, 50);
-	resultText.position(cnv.x, cnv.y+HEIGHT);
+	resultText.position(20, 190+180);
 }
 
 function btn_resetRectangles(argument) {
@@ -74,6 +83,8 @@ function btn_resetRectangles(argument) {
 	emptyBlocks = [];
 	linesegments = [];
 	points = [];
+	openlines = [];
+	ans_Coordinates = [];
 	done  = false;
 	part1 = false;
 	part2 = false;
@@ -103,7 +114,8 @@ function btn_runCornerStitching(){
 			fill(255,204,0);
 			rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
 			fill(0);
-			text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+			if(showText)
+				text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
 		}
 
 		fill(0,0,255);
@@ -127,14 +139,67 @@ function btn_runCornerStitching(){
 				fill(155, 200, 25);
 				rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2);
 				fill(0);
-				text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+				if(showText)
+					text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
 			}
 		}
-		printResult(answer);
+		printResult(answer, null);
 	}
 	loop();
 }
+function btn_getResult(){
+	if(part2){
+		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+			fill(255,204,0);
+			rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2); 
+			fill(0);
+			if(showText)
+				text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+		}
 
+		fill(0,0,255);
+		for (var i = points.length - 1; i >= 0; i--) {
+			circle(points[i].x, points[i].y, circleRadius); 
+		}		
+		part2 = true;
+
+		var answer = 0;
+		let temp, temp2; 
+		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+			temp = (emptyBlocks[i].w * emptyBlocks[i].h);
+			if(answer < temp){	
+				answer = temp;
+			}
+		}
+
+		for (var i = emptyBlocks.length - 1; i >= 0; i--) {
+			temp2 = (emptyBlocks[i].w * emptyBlocks[i].h);
+			if(answer == temp2){	
+				fill(155, 200, 25);
+				rect(emptyBlocks[i].x1+1, emptyBlocks[i].y1+1, emptyBlocks[i].w-2, emptyBlocks[i].h-2);
+				fill(0);
+				if(showText)
+					text(emptyBlocks[i].rank, emptyBlocks[i].x1 + 5, emptyBlocks[i].y1 + 15);
+			}
+		}
+
+		console.log("Result:", ans_Coordinates);
+		fill(0, 0, 200, 150); 
+		for (var i = 0; i < ans_Coordinates.length; i++) {
+			rect(ans_Coordinates[i].x1, ans_Coordinates[i].y1, ans_Coordinates[i].w, ans_Coordinates[i].h);
+		}
+
+		printResult(answer, ans_Coordinates[0].area);
+	}
+	loop();
+}
+function myCheckBoxEvent(){
+	if(this.checked()){
+		showText = true;
+	}else{
+		showText = false;
+	}
+}
 function setup() {
 	txt       = createDiv('<H2>Corner Stitching Sweep traversal!</H2>');
 	// txt       = createDiv('<H2>Location of maximal empty rectangle!</H2>');
@@ -144,8 +209,10 @@ function setup() {
  	newbtn    = createButton('Reload Rectangles');
  	intbtn    = createButton('Get Intersection Points');
  	corbtn    = createButton('Run Corner Stitching');
+	resbtn    = createButton('Get Results');
+	textCB    = createCheckbox('Display Rectangle numbers', false);
+
 	inputN    = createInput(totalRect);
-	
 	minWN     = createInput(minW);
 	maxWN     = createInput(maxW);
 	minHN     = createInput(minH);
@@ -156,6 +223,9 @@ function setup() {
 	newbtn.mousePressed(btn_resetRectangles);
 	intbtn.mousePressed(btn_getIntersections);
 	corbtn.mousePressed(btn_runCornerStitching);
+	resbtn.mousePressed(btn_getResult);
+
+	textCB.changed(myCheckBoxEvent);
 	
 	inputN.input(myInputEvent);
 	minWN.input(myInputEvent);
@@ -218,7 +288,7 @@ function showHorLine(){
 		if(r1.x1 < r2.x1) return -1;
 		return 0;
 	});
-	console.log(rectangles);
+	// console.log(rectangles);
 }
 function getAllSegements() {
 	var x1, y1, x2, y2, S;
@@ -247,7 +317,8 @@ function sortRectangles(){
 	for (var i = 0; i < rectangles.length; i++) {
 		rectangles[i].rank = i+1;
 		fill(0);
-		text(i+1, rectangles[i].x1 + 5, rectangles[i].y1 + 15);
+		if(showText)
+			text(i+1, rectangles[i].x1 + 5, rectangles[i].y1 + 15);
 	}
 }
 function sortSegments() {
@@ -298,23 +369,50 @@ function linedash(x1, y1, x2, y2, delta=2, style = '-') {
 		else if (style == 'o') { ellipse(xi1, yi1, delta/2); }
 	}
 }
-function printResult(ans){
+function printResult(ans, ActualMax=null){
 	var str="<h3>List of all Empty Blocks:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
-	var final="";
+	var final="<h3>(Temp) Maximum Empty Rectangle:</h3><table><tr><th>Block #</th><th>W</th><th>H</th><th>Area</th></tr>";
 	var temp;
 	console.log("ans:",ans);
 	for (var i = 0; i < emptyBlocks.length; i++) {
 		temp = (emptyBlocks[i].w*emptyBlocks[i].h);
 		if(temp == ans)
-			final+=("B "+emptyBlocks[i].rank+ ") Width = "+ emptyBlocks[i].w+ " Height = " + emptyBlocks[i].h + "&nbsp;&nbsp; Area:"+(emptyBlocks[i].w*emptyBlocks[i].h) + "<br>");
+			final+=("<tr><td>"+emptyBlocks[i].rank+ "</td><td>"+ emptyBlocks[i].w+ "</td><td>" + emptyBlocks[i].h + "</td><td>" + (emptyBlocks[i].w*emptyBlocks[i].h) + "</td></tr></table>");
 	
-		str+=(  "<tr><td>"+emptyBlocks[i].rank+"</td><td>"+ emptyBlocks[i].w + "</td><td>" + emptyBlocks[i].h + "</td><td>" + (emptyBlocks[i].w*emptyBlocks[i].h) + "</td></tr>");
+		str+=(      "<tr><td>"+emptyBlocks[i].rank+ "</td><td>"+ emptyBlocks[i].w+ "</td><td>" + emptyBlocks[i].h + "</td><td>" + (emptyBlocks[i].w*emptyBlocks[i].h) + "</td></tr>");
 	}
 	str+="</table>";
 
     allBlocks.html(str);
-	resultText.html("<h2>Results:</h2><br>" + final);
-	// console.log("here", final);
+	if(ActualMax != null){
+		final += "<br><h3>Maximum Empty Rectangle:</h3><table><tr><th>X</th><th>Y</th><th>W</th><th>H</th><th>Area</th></tr>";
+		for (var i = 0; i < ans_Coordinates.length; i++) {
+			final += "<tr><td>"+ans_Coordinates[i].x1+"</td><td>"+ ans_Coordinates[i].y1 + "</td><td>" + ans_Coordinates[i].w + "</td><td>" + ans_Coordinates[i].h + "</td><td>" + ans_Coordinates[i].area + "</td></tr>"
+		}
+		final += "</table>";
+	}
+	resultText.html("<h2>Results:</h2>" + final);
+}
+function getResult(){
+	// for (var i = 0; i < emptyBlocks.length; i++) {
+	// 	console.log("rank:",emptyBlocks[i].rank,"up:",emptyBlocks[i].up,"down:",emptyBlocks[i].down); 
+	// }
+	var ans_area=0, ans_rank=0;
+	var temp_area, temp_rank;
+	var areas = [];
+	for (var i = 0; i < emptyBlocks.length; i++) {
+		areas.push({rank: emptyBlocks[i].rank, res: get_max_Area(emptyBlocks[i].rank)});
+	}
+	var max_area = 0;
+	for (var i = 0; i < areas.length; i++) {
+		max_area = max(max_area, areas[i].res.area);
+	}
+
+	for (var i = 0; i < areas.length; i++) {
+		if(areas[i].res.area == max_area){
+			ans_Coordinates.push(areas[i].res);
+		}
+	}
 }
 function draw() {
 	while(count<totalRect){
@@ -330,6 +428,7 @@ function draw() {
 		getdots();		
 		console.log("Done", emptyBlocks);
 		done = true;		
+		getResult();
 	}
 
 	noLoop();
@@ -394,14 +493,14 @@ class Segment{
 	}
 }
 
-function flooring(x) { // now in O(N) later have to do in O(logN)
+function flooring(x) {
 	var ans = -1;
 	for (var i = 0; i < sweepLineStatus.length; i++) {
 		if(sweepLineStatus[i].x1 < x)
 			ans = i;
 		else if(sweepLineStatus[i].x1 > x)
 			return ans;
-		else{ 		// used in deletion
+		else{
 			ans = i;
 			return i;
 		}
@@ -414,20 +513,19 @@ function getdots(){
 	var temp = [];
 	var left, right;
 	var isopen;
-	var openlines = [];
 	var closeLeft_left;
 	var closeLeft_right;
 	var closeRight_left;
 	var closeRight_right;
-	var R1, R2;
-	openlines.push({x1:0, y1:0, x2:WIDTH, y2:0});
+	var R1, R2, t1, t2, r, pointer;
+	openlines = [];
+	openlines.push({x1:0, y1:0, x2:WIDTH, y2:0, up:[]});
 
 	for (var i = 0; i< segments.length; i++) {
 		index  = flooring(segments[i].x1);
 		isopen = segments[i].open;
-		if(isopen){						// rectangle opening 
-			if(index == -1){
-														// no left exist
+		if(isopen){					// rectangle opening 
+			if(index == -1){		// no left exist
 				sweepLineStatus.splice(0, 0, segments[i]);
 				temp.splice(0, 0, segments[i].x1);
 				points.push({x: 0,     y:segments[i].y1});
@@ -453,9 +551,14 @@ function getdots(){
 					{points.push({x:sweepLineStatus[right].rect.x1, y:segments[i].y1}); R2 = sweepLineStatus[right].rect;}
 			}
 
-			checkPossibleEmptyBlocks1(openlines, points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y, R1, R2);			
-			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:segments[i].x1,            y2:segments[i].y1});
-			openlines.push({x1:segments[i].x2,            y1:segments[i].y2,            x2:points[points.length-1].x, y2:points[points.length-1].y});
+			t1 = checkPossibleEmptyBlocks1(points[points.length-2].x, points[points.length-2].y, points[points.length-1].x, points[points.length-1].y, R1, R2);			
+			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:segments[i].x1,            y2:segments[i].y1,            up:[t1]});
+			openlines.push({x1:segments[i].x2,            y1:segments[i].y2,            x2:points[points.length-1].x, y2:points[points.length-1].y, up:[t1]});
+			
+			console.log("Inside:");
+			console.log(points[points.length-2].x, segments[i].x1);
+			console.log(segments[i].x2, points[points.length-1].x);
+			console.log("above added!");
 		}else{						// rectangle closing
 			left  = index-1;
 			if(left == -1)
@@ -475,12 +578,20 @@ function getdots(){
 
 			closeLeft_right = segments[i].rect;
 			closeRight_left = segments[i].rect;
+
+			t1 = -1;
+			t2 = -1;
 			if((segments[i].x1 - points[points.length-2].x) >0)
-				checkPossibleEmptyBlocks2(openlines, points[points.length-2].x, points[points.length-2].y, segments[i].x1, segments[i].y1, closeLeft_left, closeLeft_right);
-			if((points[points.length-1].x - segments[i].x2) >0)
-				checkPossibleEmptyBlocks2(openlines, segments[i].x2, segments[i].y2, points[points.length-1].x, points[points.length-1].y, closeRight_left, closeRight_right);			
+				{t1 = checkPossibleEmptyBlocks2(points[points.length-2].x, points[points.length-2].y, segments[i].x1, segments[i].y1, closeLeft_left, closeLeft_right);}
 			
-			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:points[points.length-1].x, y2:points[points.length-1].y});
+			if((points[points.length-1].x - segments[i].x2) >0)
+				{t2 = checkPossibleEmptyBlocks2(segments[i].x2, segments[i].y2, points[points.length-1].x, points[points.length-1].y, closeRight_left, closeRight_right);}			
+			
+			pointer = [];
+			if(t1 !=-1) pointer.push(t1);
+			if(t2 !=-1) pointer.push(t2);
+			openlines.push({x1:points[points.length-2].x, y1:points[points.length-2].y, x2:points[points.length-1].x, y2:points[points.length-1].y, up:pointer});
+			console.log(points[points.length-2].x, points[points.length-1].x);
 		}
 		// console.log("After ", i, emptyBlocks.length, emptyBlocks, openlines);
 
@@ -489,6 +600,7 @@ function getdots(){
 		// console.log(isopen, index, points[points.length-2], points[points.length-1], temp);
 		// circle(points[points.length-1].x, points[points.length-1].y, 8); 
 		// circle(points[points.length-2].x, points[points.length-2].y, 8); 
+		console.log("so now:", emptyBlocks);
 	}
 
 	// console.log("here", linesegments);
@@ -498,65 +610,141 @@ function getdots(){
 	x2 = openlines[openlines.length-1].x2;
 	y2 = openlines[openlines.length-1].y2;
 
-	emptyBlocks.push({up:null, down:null, left:null, right:null, x1: x1, y1: y1, w:WIDTH , h:(HEIGHT-y2), rank:(emptyBlocks.length+1)});
+	r = emptyBlocks.length+1;
+	var top_pointers = openlines[openlines.length-1].up;	// upper block pointer
+	
+	// console.log("--------------\nlast end line, top pointers:", top_pointers);
+	for (var i = 0; i < top_pointers.length; i++) {
+		// console.log("here2:", emptyBlocks, top_pointers);
+		emptyBlocks[top_pointers[i]-1].down.push(r);
+	}
+	emptyBlocks.push({up:top_pointers, down:[], left:null, right:null, x1: x1, y1: y1, w:WIDTH , h:(HEIGHT-y2), rank:r});
 
-	// console.log(points);
+	// console.log("last", r);
 }
 
 
-
-
-function checkPossibleEmptyBlocks1(openlines, px1, py1, px2, py2, R1, R2){
-	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT;
+function checkPossibleEmptyBlocks1(px1, py1, px2, py2, R1, R2){
+	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT, r;
 	for (var i = 0; i < openlines.length; i++) {
 		x1 = openlines[i].x1;
 		y1 = openlines[i].y1;
 		x2 = openlines[i].x2;
 		y2 = openlines[i].y2;
 
+		console.log(openlines);
 		if(x1==px1 && x2==px2){
 			flag +=1;
 			// if((x2-x1)*(py2-y2) !=0)
-			{	UP    = null;
-				DOWN  = null;
+			{	UP    = [];
+				DOWN  = [];
 				LEFT  = (R1==null)?null:R1.rank;
 				RIGHT = (R2==null)?null:R2.rank;
-				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});				
+				r = emptyBlocks.length+1;
+				top_pointers = openlines[i].up;	// upper block pointer
+				UP = top_pointers;
+				// console.log("opening line, top pointers:", top_pointers);
+				for (var j = 0; j < top_pointers.length; j++) {
+					// console.log(emptyBlocks[j-1]);
+					emptyBlocks[top_pointers[j]-1].down.push(r);
+				}
+				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:r});				
 			}
 			// console.log("block found", emptyBlocks.length, emptyBlocks);
 			openlines.splice(i, 1);
+			return r;
 		}
 		if(flag>1){
 			console.log("Error", emptyBlocks);
 		}
 	}
+	return -1;
 }
 
-function checkPossibleEmptyBlocks2(openlines, px1, py1, px2, py2, R1, R2){
-	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT;
+function checkPossibleEmptyBlocks2(px1, py1, px2, py2, R1, R2){
+	var x1, y1, x2, y2, flag=0, UP, DOWN, LEFT, RIGHT, r;
 	for (var i = 0; i < openlines.length; i++) {
 		x1 = openlines[i].x1;
 		y1 = openlines[i].y1;
 		x2 = openlines[i].x2;
 		y2 = openlines[i].y2;
-
+		// console.log(x1, x2, px1, px2);	
+		// console.log(openlines);
 		if(x1==px1 && x2==px2){
 			flag +=1; 
 			// if((x2-x1)*(py2-y2) !=0)
-			{	UP    = null;
-				DOWN  = null;
+			{	UP    = [];
+				DOWN  = [];
 				LEFT  = (R1==null)?null:R1.rank;
 				RIGHT = (R2==null)?null:R2.rank;
-				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:(emptyBlocks.length+1)});
+				r = emptyBlocks.length+1;
+				top_pointers = openlines[i].up;	// upper block pointer
+				UP = top_pointers;
+				// console.log("closing line, top pointers:", top_pointers);
+				for (var j = 0; j < top_pointers.length; j++) {
+					
+					// console.log("here2:", emptyBlocks, top_pointers[j]-1);
+					emptyBlocks[top_pointers[j]-1].down.push(r);
+				}
+				emptyBlocks.push({up:UP, down:DOWN, left:LEFT, right:RIGHT, x1: x1, y1: y1, w:(x2-x1) , h:(py2-y2), rank:r});
 			}
 			openlines.splice(i, 1);
 			// console.log("block found", emptyBlocks.length);
-			return;
+			return r;
 		}
 		if(flag>1){
 			console.log("Error", emptyBlocks);
 		}
 	}
+	return -1;
 }
 
 
+function get_max_Area(block_num){
+
+	var L    = emptyBlocks[block_num-1].x1;
+	var R    = emptyBlocks[block_num-1].x1 + emptyBlocks[block_num-1].w;
+	var upwards   = move_up(block_num, L, R);
+	var downwards = move_down(block_num, L, R);
+	var result_ = {
+		x1 : emptyBlocks[block_num-1].x1,
+		y1 : (emptyBlocks[block_num-1].y1 + emptyBlocks[block_num-1].h - upwards),
+		w  : emptyBlocks[block_num-1].w,
+		h  : (upwards+downwards-emptyBlocks[block_num-1].h),
+		area : (emptyBlocks[block_num-1].w)*(upwards+downwards-emptyBlocks[block_num-1].h)
+	}
+	return result_;
+}
+
+function move_up(block_num, L ,R){
+	var l = emptyBlocks[block_num-1].x1;
+	var r = emptyBlocks[block_num-1].x1 + emptyBlocks[block_num-1].w;
+	if(!(l<=L && R<=r)){
+		return 0;
+	}
+	var t = 0, v, bn;
+	var ans = emptyBlocks[block_num-1].h;
+	var temp = 0;
+	for (var i = 0; i < emptyBlocks[block_num-1].up.length; i++) {
+		bn = emptyBlocks[block_num-1].up[i];
+		temp = max(temp, move_up(bn, L ,R));
+	}
+	return ans + temp;
+}
+
+
+function move_down(block_num, L ,R){
+	var l = emptyBlocks[block_num-1].x1;
+	var r = emptyBlocks[block_num-1].x1 + emptyBlocks[block_num-1].w;
+	if(!(l<=L && R<=r)){
+		return 0;
+	}
+	var t = 0, v, bn;
+	var ans = emptyBlocks[block_num-1].h;
+	var temp = 0;
+	for (var i = 0; i < emptyBlocks[block_num-1].down.length; i++) {
+		bn = emptyBlocks[block_num-1].down[i];
+		temp = max(temp, move_down(bn, L ,R));
+	}
+	return ans + temp;
+}
