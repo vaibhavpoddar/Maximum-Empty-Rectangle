@@ -121,6 +121,9 @@ function btn_clearAll(){
 		for (var i = rectangles.length - 1; i >= 0; i--) {
 			rectangles[i].print();
 		}
+		resultText.html("");
+		resultText2.html("");
+		allBlocks.html("");
 	}
 	loop();
 }
