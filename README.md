@@ -1,6 +1,13 @@
 # Maximum Empty Rectangle in VLSI Layout Design using Corner Stitching Data Structure
 
-Given N non-overlapping rectangles in a VLSI board, find the maximum empty rectangle in the board.
+##### Problem: 
+    Given N non-overlapping rectangles in a VLSI board. 
+    Find the maximum empty rectangle (MER) in the board.
+
+This is a visualization to find out MER.
+
+##### Result: 
+    Max MER = max{ MER by Horizontal Parition , MER by Vertical Partition }
 
 ### Try it out here: https://vaibhavpoddar.github.io/Maximum-Empty-Rectangle/
 
